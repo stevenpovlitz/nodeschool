@@ -1,22 +1,15 @@
 var http = require('http');
-var server = http.createServer();
+var fs = require('fs');
 
-server.on('request', function(request, response) {
-  response.writeHead(200);
-  response.write("Hello, this is dog");
-  response.end();
-});
+http.createServer(function(request, response) {
+  var newFile = fs.createWriteStream("readme_copy.md");
 
-server.on('request', function(request, response) {
-  console.log("New request coming in...");
-});
+  request.pipe(newFile);
 
-server.on('request', function(request, response) {
-  console.log("sharing with user - 'Hello, this is dog'");
-});
-
-server.on('close', function() {
-  console.log("Closing down the server...");
-});
-
-server.listen(8080);
+  request.on('end', function() {
+    //atime is now, minus one day. mtime is current time
+    var now = Date.now() / 1000; // converts milliseconds to seconds
+    fs.utimes("readme_copy.md", now - 86400, now - 86400);
+    response.end('success!\n');
+  });
+}).listen(8080);
